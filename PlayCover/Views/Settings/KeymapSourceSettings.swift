@@ -53,6 +53,14 @@ struct KeymapSourceSettings: View {
                             .frame(width: 130)
                     })
                     .disabled(!selectedNotEmpty)
+                    Spacer()
+                        .frame(height: 20)
+                    Button(action: {
+                        storeVM.resolveSources()
+                    }, label: {
+                        Text("preferences.button.resolveSources")
+                            .frame(width: 130)
+                    })
                 }
             }
         }

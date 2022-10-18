@@ -204,7 +204,9 @@ struct AddSourceView: View {
                 })
                 Button(action: {
                     if newSourceURL != nil {
-                        storeVM.appendSourceData(&storeVM.sources, SourceData(source: newSourceURL!.absoluteString))
+                        storeVM.appendSourceData(
+                            &storeVM.sources,
+                            SourceData(source: newSourceURL!.absoluteString))
                         addSourceSheet.toggle()
                     }
                 }, label: {
