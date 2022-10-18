@@ -113,7 +113,10 @@ struct KeymappingView: View {
                             showPopover = true
                         }
                         .popover(isPresented: $showPopover, arrowEdge: .bottom) {
-                            KeymapPopoverView(settings: $settings, viewModel: viewModel)
+                            KeymapPopoverView(
+                                keymaps: storeVM.keymaps.filter({ $0.bundleID == viewModel.app.info.bundleIdentifier }),
+                                settings: $settings,
+                                viewModel: viewModel)
                                 .environmentObject(storeVM)
                         }
                         .frame(width: 160)
@@ -139,8 +142,9 @@ struct KeymapPopoverView: View {
     @Environment(\.dismiss) var dismiss
 
     @State private var showImportSuccess = false
-    @State private var keymapSelection: KeymapData?
+    @State private var keymapSelection = KeymapData()
     @State private var keymapSelectionHTMLURL = URL(string: "https://www.google.com")!
+    @State var keymaps: [KeymapData]
 
     @Binding var settings: AppSettings
     @ObservedObject var viewModel: AppSettingsVM
@@ -152,22 +156,19 @@ struct KeymapPopoverView: View {
             Text(settings.info.bundleName)
                 .font(.headline)
             Picker("", selection: $keymapSelection) {
-                ForEach(storeVM.keymaps, id: \.url) { keymap in
-                    if keymap.bundleID == viewModel.app.info.bundleIdentifier {
-                        Group {
-                            Text("\(keymap.name) ")
-                            +
-                            Text(keymap.repoName)
-                                .font(.footnote)
-                        }
-                        .tag(keymap.url)
+                ForEach(keymaps, id: \.self) { keymap in
+                    Group {
+                        Text("\(keymap.name) ")
+                        +
+                        Text(keymap.repoName)
+                            .font(.footnote)
                     }
+                    .tag(keymap)
                 }
             }
 
-            Link("playapp.download.info", destination: keymapSelectionHTMLURL)
-                .disabled(keymapSelection == nil)
-            Divider()
+            // Link("playapp.download.info", destination: URL(string: keymapSelection.htmlUrl)!)
+            // Divider()
 
             HStack(alignment: .center) {
                 Button("button.Cancel", role: .cancel) {
@@ -175,11 +176,10 @@ struct KeymapPopoverView: View {
                 }
                 Button("button.Install") {
                     Task {
-                        await downloadKeymapping(keymapSelection!)
+                        await downloadKeymapping(keymapSelection)
                     }
                     dismiss()
                 }
-                .disabled(keymapSelection == nil)
             }
         }
         .padding()
@@ -190,11 +190,14 @@ struct KeymapPopoverView: View {
                 toastDetails: NSLocalizedString("alert.kmImported", comment: ""))
         }
         .onChange(of: keymapSelection) { _ in
-            if keymapSelection != nil {
-                keymapSelectionHTMLURL = URL(string: keymapSelection!.htmlUrl)!
+            if let url = URL(string: keymapSelection.htmlUrl) {
+                keymapSelectionHTMLURL = url
             } else {
                 keymapSelectionHTMLURL = URL(string: "https://www.google.com")!
             }
+        }
+        .onAppear {
+            keymapSelection = keymaps[0]
         }
     }
 
