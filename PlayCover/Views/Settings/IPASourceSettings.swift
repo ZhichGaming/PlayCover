@@ -55,7 +55,7 @@ struct IPASourceSettings: View {
                             .frame(width: 130)
                     })
                     Button(action: {
-                        storeVM.deleteSource(&selected)
+                        storeVM.deleteSource(&storeVM.sources, &selected)
                     }, label: {
                         Text("preferences.button.deleteSource")
                             .frame(width: 130)
@@ -64,14 +64,14 @@ struct IPASourceSettings: View {
                     Spacer()
                         .frame(height: 20)
                     Button(action: {
-                        storeVM.moveSourceUp(&selected)
+                        storeVM.moveSourceUp(&storeVM.sources, &selected)
                     }, label: {
                         Text("preferences.button.moveSourceUp")
                             .frame(width: 130)
                     })
                     .disabled(!selectedNotEmpty)
                     Button(action: {
-                        storeVM.moveSourceDown(&selected)
+                        storeVM.moveSourceDown(&storeVM.sources, &selected)
                     }, label: {
                         Text("preferences.button.moveSourceDown")
                             .frame(width: 130)
@@ -204,7 +204,7 @@ struct AddSourceView: View {
                 })
                 Button(action: {
                     if newSourceURL != nil {
-                        storeVM.appendSourceData(SourceData(source: newSourceURL!.absoluteString))
+                        storeVM.appendSourceData(&storeVM.sources, SourceData(source: newSourceURL!.absoluteString))
                         addSourceSheet.toggle()
                     }
                 }, label: {

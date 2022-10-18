@@ -20,11 +20,11 @@ class StoreVM: ObservableObject {
             .appendingPathExtension("plist")
         sources = []
         keymappingSources = []
-        if !decode() {
-            encode()
+        if !decode(&sources, sourcesUrl) {
+            encode(sources, sourcesUrl)
         }
-        if !decodeKeymapping() {
-            encodeKeymapping()
+        if !decode(&keymappingSources, keymappingSourcesUrl) {
+            encode(keymappingSources, keymappingSourcesUrl)
         }
         resolveSources()
     }
@@ -33,12 +33,12 @@ class StoreVM: ObservableObject {
     @Published var filteredApps: [StoreAppData] = []
     @Published var sources: [SourceData] {
         didSet {
-            encode()
+            encode(sources, sourcesUrl)
         }
     }
     @Published var keymappingSources: [SourceData] {
         didSet {
-            encodeKeymapping()
+            encode(keymappingSources, keymappingSourcesUrl)
         }
     }
 
@@ -46,9 +46,9 @@ class StoreVM: ObservableObject {
     let keymappingSourcesUrl: URL
 
     @discardableResult
-    public func decode() -> Bool {
+    public func decode(_ sources: inout [SourceData], _ sourceUrl: URL) -> Bool {
         do {
-            let data = try Data(contentsOf: sourcesUrl)
+            let data = try Data(contentsOf: sourceUrl)
             sources = try PropertyListDecoder().decode([SourceData].self, from: data)
 
             return true
@@ -59,42 +59,13 @@ class StoreVM: ObservableObject {
     }
 
     @discardableResult
-    public func decodeKeymapping() -> Bool {
-        do {
-            let keymappingData = try Data(contentsOf: keymappingSourcesUrl)
-            keymappingSources = try PropertyListDecoder().decode([SourceData].self, from: keymappingData)
-
-            return true
-        } catch {
-            print(error)
-            return false
-        }
-    }
-
-    @discardableResult
-    public func encode() -> Bool {
+    public func encode(_ sources: [SourceData], _ sourcesUrl: URL) -> Bool {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
 
         do {
             let data = try encoder.encode(sources)
             try data.write(to: sourcesUrl)
-
-            return true
-        } catch {
-            print(error)
-            return false
-        }
-    }
-
-    @discardableResult
-    public func encodeKeymapping() -> Bool {
-        let encoder = PropertyListEncoder()
-        encoder.outputFormat = .xml
-
-        do {
-            let keymappingData = try encoder.encode(keymappingSources)
-            try keymappingData.write(to: keymappingSourcesUrl)
 
             return true
         } catch {
