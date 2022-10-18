@@ -90,8 +90,39 @@ class StoreVM: ObservableObject {
         fetchApps()
     }
 
-    func appendKeymapData(_ data: [KeymapData]) {
-        
+    func appendKeymapData(_ data: [KeymapFolderSourceData]) {
+        for element in data {
+            do {
+                let contents = try String(contentsOf: URL(string: element.url)!)
+                let jsonData = contents.data(using: .utf8)!
+                let data: [KeymapSourceData] = try JSONDecoder().decode([KeymapSourceData].self, from: jsonData)
+
+                for source in data {
+                    var keymapData = KeymapData()
+                    keymapData.bundleID = element.name
+                    keymapData.htmlUrl = element.htmlUrl
+                    
+                    keymapData.name = source.name.replacingOccurrences(of: ".playmap", with: "")
+                    keymapData.url = source.downloadUrl
+                    keymapData.repoName = getRepoName(source.downloadUrl)
+                    keymaps.append(keymapData)
+                }
+            } catch {
+                Log.shared.error(error)
+            }
+        }
+    }
+
+    func getRepoName(_ downloadLink: String) -> String {
+        var downloadLink = downloadLink
+
+        if let reposRange = downloadLink.range(of: "https://raw.githubusercontent.com/") {
+            downloadLink.removeSubrange(downloadLink.startIndex..<reposRange.upperBound)
+        }
+
+        let sourceComponents = downloadLink.components(separatedBy: "/")
+
+        return "\(sourceComponents[0])/\(sourceComponents[1]) (\(sourceComponents[2]))"
     }
 
     func fetchApps() {
@@ -154,11 +185,11 @@ class StoreVM: ObservableObject {
                             let contents = try String(contentsOf: url)
                             let jsonData = contents.data(using: .utf8)!
                             do {
-                                let data: [StoreAppData] = try JSONDecoder().decode([StoreAppData].self, from: jsonData)
+                                let data: [KeymapFolderSourceData] = try JSONDecoder().decode([KeymapFolderSourceData].self, from: jsonData)
                                 if data.count > 0 {
                                     DispatchQueue.main.async {
                                         self.keymapSources[index].status = .valid
-                                        self.appendAppData(data)
+                                        self.appendKeymapData(data)
                                     }
                                     return
                                 }
@@ -254,14 +285,21 @@ struct StoreAppData: Codable, Equatable {
     let link: String
 }
 
+struct KeymapFolderSourceData: Codable, Equatable {
+    let name: String
+    let url: String
+    let htmlUrl: String
+}
+
 struct KeymapSourceData: Codable, Equatable {
-    
+    let name: String
+    let downloadUrl: String
 }
 
 struct KeymapData: Codable, Equatable, Hashable {
-    var bundleID: String
-    let name: String
-    let htmlUrl: String
-    let url: String
-    let repoName: String
+    var bundleID: String = ""
+    var name: String = ""
+    var htmlUrl: String = ""
+    var url: String = ""
+    var repoName: String = ""
 }

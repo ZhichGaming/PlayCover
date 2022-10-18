@@ -217,18 +217,6 @@ struct KeymapPopoverView: View {
             Log.shared.error(error)
         }
     }
-
-    func getRepoName(_ downloadLink: String) -> String {
-        var downloadLink = downloadLink
-
-        if let reposRange = downloadLink.range(of: "https://raw.githubusercontent.com/") {
-            downloadLink.removeSubrange(downloadLink.startIndex..<reposRange.upperBound)
-        }
-
-        let sourceComponents = downloadLink.components(separatedBy: "/")
-
-        return "\(sourceComponents[0])/\(sourceComponents[1]) (\(sourceComponents[2]))"
-    }
 }
 
 struct GraphicsView: View {
