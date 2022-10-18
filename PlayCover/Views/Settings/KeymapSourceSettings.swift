@@ -12,12 +12,12 @@ struct KeymapSourceSettings: View {
     @State var selectedNotEmpty = false
     @State var addSourceSheet = false
     @State var triggerUpdate = false
-    @EnvironmentObject var storeVM: StoreVM
+    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
 
     var body: some View {
         Form {
             HStack {
-                List(storeVM.keymapSources, id: \.id, selection: $selected) { source in
+                List(keymapSourceVM.sources, id: \.id, selection: $selected) { source in
                     SourceView(source: source)
                 }
                 .listStyle(.bordered(alternatesRowBackgrounds: true))
@@ -31,7 +31,7 @@ struct KeymapSourceSettings: View {
                             .frame(width: 130)
                     })
                     Button(action: {
-                        storeVM.deleteSource(&storeVM.keymapSources, &selected)
+                        keymapSourceVM.deleteSource(&selected)
                     }, label: {
                         Text("preferences.button.deleteSource")
                             .frame(width: 130)
@@ -40,14 +40,14 @@ struct KeymapSourceSettings: View {
                     Spacer()
                         .frame(height: 20)
                     Button(action: {
-                        storeVM.moveSourceUp(&storeVM.keymapSources, &selected)
+                        keymapSourceVM.moveSourceUp(&selected)
                     }, label: {
                         Text("preferences.button.moveSourceUp")
                             .frame(width: 130)
                     })
                     .disabled(!selectedNotEmpty)
                     Button(action: {
-                        storeVM.moveSourceDown(&storeVM.keymapSources, &selected)
+                        keymapSourceVM.moveSourceDown(&selected)
                     }, label: {
                         Text("preferences.button.moveSourceDown")
                             .frame(width: 130)
@@ -56,7 +56,7 @@ struct KeymapSourceSettings: View {
                     Spacer()
                         .frame(height: 20)
                     Button(action: {
-                        storeVM.resolveSources()
+                        keymapSourceVM.resolveSources()
                     }, label: {
                         Text("preferences.button.resolveSources")
                             .frame(width: 130)
@@ -75,7 +75,7 @@ struct KeymapSourceSettings: View {
         .frame(width: 600, height: 300, alignment: .center)
         .sheet(isPresented: $addSourceSheet) {
             AddKeymappingSourceView(addSourceSheet: $addSourceSheet)
-                .environmentObject(storeVM)
+                .environmentObject(keymapSourceVM)
         }
     }
 
@@ -89,7 +89,7 @@ struct AddKeymappingSourceView: View {
     @State var newSourceURL: URL?
     @State var sourceValidationState = SourceValidation.checking
     @Binding var addSourceSheet: Bool
-    @EnvironmentObject var storeVM: StoreVM
+    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
 
     var body: some View {
         VStack {
@@ -124,8 +124,7 @@ struct AddKeymappingSourceView: View {
                 })
                 Button(action: {
                     if newSourceURL != nil {
-                        storeVM.appendSourceData(
-                            &storeVM.keymapSources,
+                        keymapSourceVM.appendSourceData(
                             SourceData(source: newSourceURL!.absoluteString))
                         addSourceSheet.toggle()
                     }

@@ -15,7 +15,8 @@ struct MainView: View {
     @Environment(\.controlActiveState) var controlActiveState
 
     @EnvironmentObject var apps: AppsVM
-    @EnvironmentObject var store: StoreVM
+    @EnvironmentObject var ipaSourceVM: IPASourceVM
+    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
     @EnvironmentObject var integrity: AppIntegrity
 
     @Binding public var xcodeCliInstalled: Bool
@@ -35,13 +36,14 @@ struct MainView: View {
                 GeometryReader { sidebarGeom in
                     List {
                         NavigationLink(destination: AppLibraryView(selectedBackgroundColor: $selectedBackgroundColor,
-                                                                   selectedTextColor: $selectedTextColor),
+                                                                   selectedTextColor: $selectedTextColor)
+                            .environmentObject(keymapSourceVM),
                                        tag: 1, selection: self.$selectedView) {
                             Label("sidebar.appLibrary", systemImage: "square.grid.2x2")
                         }
                         NavigationLink(destination: IPALibraryView(selectedBackgroundColor: $selectedBackgroundColor,
                                                                    selectedTextColor: $selectedTextColor)
-                            .environmentObject(store),
+                            .environmentObject(ipaSourceVM),
                                        tag: 2, selection: self.$selectedView) {
                             Label("sidebar.ipaLibrary", systemImage: "arrow.down.circle")
                         }
@@ -312,7 +314,9 @@ struct MainView_Previews: PreviewProvider {
                  isSigningSetupShown: $isSigningSetupShown)
             .environmentObject(InstallVM.shared)
             .environmentObject(AppsVM.shared)
-            .environmentObject(StoreVM.shared)
+            .environmentObject(IPASourceVM(PlayTools.playCoverContainer
+                .appendingPathComponent("Sources")
+                .appendingPathExtension("plist")))
             .environmentObject(AppIntegrity())
     }
 }

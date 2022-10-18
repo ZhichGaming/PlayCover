@@ -12,6 +12,7 @@ struct AppSettingsView: View {
     @Environment(\.dismiss) var dismiss
 
     @ObservedObject var viewModel: AppSettingsVM
+    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
 
     @State var resetSettingsCompletedAlert = false
     @State var resetKmCompletedAlert = false
@@ -39,6 +40,7 @@ struct AppSettingsView: View {
                     showPopover: $keymappingPopoverShowing,
                     settings: $viewModel.settings,
                     viewModel: viewModel)
+                    .environmentObject(keymapSourceVM)
                     .tabItem {
                         Text("settings.tab.km")
                     }
@@ -98,7 +100,7 @@ struct KeymappingView: View {
     @Binding var settings: AppSettings
 
     @ObservedObject var viewModel: AppSettingsVM
-    @EnvironmentObject var storeVM: StoreVM
+    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
 
     var body: some View {
         ScrollView {
@@ -111,17 +113,17 @@ struct KeymappingView: View {
                         .help("settings.toggle.mm.help")
                         .disabled(!settings.settings.keymapping)
 
-                    if storeVM.keymaps.contains(where: { $0.bundleID == viewModel.app.info.bundleIdentifier }) {
+                    if keymapSourceVM.keymaps.contains(where: { $0.bundleID == viewModel.app.info.bundleIdentifier }) {
                         Spacer()
                         Button("settings.button.km.download") {
                             showPopover = true
                         }
                         .popover(isPresented: $showPopover, arrowEdge: .bottom) {
                             KeymapPopoverView(
-                                keymaps: storeVM.keymaps.filter({ $0.bundleID == viewModel.app.info.bundleIdentifier }),
+                                keymaps: keymapSourceVM.keymaps.filter({ $0.bundleID == viewModel.app.info.bundleIdentifier }),
                                 settings: $settings,
                                 viewModel: viewModel)
-                                .environmentObject(storeVM)
+                                .environmentObject(keymapSourceVM)
                         }
                         .frame(width: 160)
                     }
@@ -151,7 +153,7 @@ struct KeymapPopoverView: View {
 
     @Binding var settings: AppSettings
     @ObservedObject var viewModel: AppSettingsVM
-    @EnvironmentObject var storeVM: StoreVM
+    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
 
     var body: some View {
         VStack(alignment: .center) {

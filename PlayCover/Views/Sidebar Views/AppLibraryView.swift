@@ -8,6 +8,7 @@ import SwiftUI
 struct AppLibraryView: View {
     @EnvironmentObject var appsVM: AppsVM
     @EnvironmentObject var installVM: InstallVM
+    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
 
     @Binding var selectedBackgroundColor: Color
     @Binding var selectedTextColor: Color
@@ -99,6 +100,7 @@ struct AppLibraryView: View {
         })
         .sheet(isPresented: $showSettings) {
             AppSettingsView(viewModel: AppSettingsVM(app: selected!))
+                .environmentObject(keymapSourceVM)
         }
         .onAppear {
             showLegacyConvertAlert = LegacySettings.doesMonolithExist

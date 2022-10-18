@@ -10,7 +10,8 @@ import SwiftUI
 
 struct PlayCoverSettingsView: View {
     @ObservedObject var updaterViewModel: UpdaterViewModel
-    @EnvironmentObject var storeVM: StoreVM
+    @EnvironmentObject var ipaSourceVM: IPASourceVM
+    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
 
     private enum Tabs: Hashable {
         case updates, ipasource, keymappingSource
@@ -28,13 +29,13 @@ struct PlayCoverSettingsView: View {
                     Label("preferences.tab.ipasource", systemImage: "list.bullet")
                 }
                 .tag(Tabs.ipasource)
-                .environmentObject(storeVM)
+                .environmentObject(ipaSourceVM)
             KeymapSourceSettings()
                 .tabItem {
                     Label("preferences.tab.keymapSource", systemImage: "keyboard.macwindow")
                 }
                 .tag(Tabs.keymappingSource)
-                .environmentObject(storeVM)
+                .environmentObject(keymapSourceVM)
         }
     }
 }
