@@ -15,6 +15,7 @@ struct AppSettingsView: View {
 
     @State var resetSettingsCompletedAlert = false
     @State var resetKmCompletedAlert = false
+    @State var keymappingPopoverShowing = false
 
     var body: some View {
         VStack {
@@ -34,7 +35,10 @@ struct AppSettingsView: View {
                 Spacer()
             }
             TabView {
-                KeymappingView(settings: $viewModel.settings, viewModel: viewModel)
+                KeymappingView(
+                    showPopover: $keymappingPopoverShowing,
+                    settings: $viewModel.settings,
+                    viewModel: viewModel)
                     .tabItem {
                         Text("settings.tab.km")
                     }
@@ -72,7 +76,7 @@ struct AppSettingsView: View {
                     dismiss()
                 }
                 .tint(.accentColor)
-                .keyboardShortcut(.defaultAction)
+                .keyboardShortcut(!keymappingPopoverShowing ? .defaultAction : .cancelAction)
             }
         }
         .onChange(of: resetSettingsCompletedAlert) { _ in
@@ -90,9 +94,9 @@ struct AppSettingsView: View {
 }
 
 struct KeymappingView: View {
-    @State private var showPopover = false
-
+    @Binding var showPopover: Bool
     @Binding var settings: AppSettings
+
     @ObservedObject var viewModel: AppSettingsVM
     @EnvironmentObject var storeVM: StoreVM
 
@@ -186,7 +190,6 @@ struct KeymapPopoverView: View {
                     dismiss()
                 }
                 .tint(.accentColor)
-                // TODO: Needs some work
                 .keyboardShortcut(.defaultAction)
             }
         }
