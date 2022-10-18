@@ -35,12 +35,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 struct PlayCoverApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject var updaterViewModel = UpdaterViewModel()
-    var ipaSourceVM = IPASourceVM(PlayTools.playCoverContainer
-        .appendingPathComponent("Sources")
-        .appendingPathExtension("plist"))
-    var keymapSourceVM = KeymapSourceVM(PlayTools.playCoverContainer
-        .appendingPathComponent("Keymap Sources")
-        .appendingPathExtension("plist"))
+    var ipaSourceVM = IPASourceVM.shared
+    var keymapSourceVM = KeymapSourceVM.shared
 
     @State var xcodeCliInstalled = shell.isXcodeCliToolsInstalled
     @State var isSigningSetupShown = false
@@ -66,9 +62,6 @@ struct PlayCoverApp: App {
             PlayCoverMenuView(isSigningSetupShown: $isSigningSetupShown)
             PlayCoverHelpMenuView(updaterViewModel: updaterViewModel)
             PlayCoverViewMenuView()
-                // TODO: Add state object
-                /*.environmentObject(ipaSourceVM)
-                .environmentObject(keymapSourceVM)*/
         }
 
         Settings {

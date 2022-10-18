@@ -8,6 +8,10 @@
 import Foundation
 
 class KeymapSourceVM: SourceVM {
+    static let shared = KeymapSourceVM(PlayTools.playCoverContainer
+        .appendingPathComponent("Keymap Sources")
+        .appendingPathExtension("plist"))
+
     @Published var keymaps: [KeymapData] = []
 
     override func resolveSources() {
@@ -64,7 +68,7 @@ class KeymapSourceVM: SourceVM {
             }
         }
     }
-    
+
     func appendKeymapData(_ data: [KeymapFolderSourceData]) {
         for element in data {
             DispatchQueue.global(qos: .userInteractive).async {

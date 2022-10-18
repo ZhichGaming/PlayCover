@@ -8,6 +8,10 @@
 import Foundation
 
 class IPASourceVM: SourceVM {
+    static let shared = IPASourceVM(PlayTools.playCoverContainer
+        .appendingPathComponent("Sources")
+        .appendingPathExtension("plist"))
+
     @Published var apps: [StoreAppData] = []
     @Published var filteredApps: [StoreAppData] = []
 
@@ -34,7 +38,7 @@ class IPASourceVM: SourceVM {
         }
         filteredApps = result
     }
-    
+
     override func resolveSources() {
         if !NetworkVM.isConnectedToNetwork() { return }
 

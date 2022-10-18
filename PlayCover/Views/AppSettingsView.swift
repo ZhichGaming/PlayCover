@@ -91,6 +91,9 @@ struct AppSettingsView: View {
                 toastType: .notice,
                 toastDetails: NSLocalizedString("settings.resetKmCompleted", comment: ""))
         }
+        .onChange(of: keymapSourceVM.keymaps) { _ in
+            dismiss()
+        }
         .padding()
     }
 }
@@ -120,7 +123,9 @@ struct KeymappingView: View {
                         }
                         .popover(isPresented: $showPopover, arrowEdge: .bottom) {
                             KeymapPopoverView(
-                                keymaps: keymapSourceVM.keymaps.filter({ $0.bundleID == viewModel.app.info.bundleIdentifier }),
+                                keymaps: keymapSourceVM.keymaps.filter({
+                                    $0.bundleID == viewModel.app.info.bundleIdentifier
+                                }),
                                 settings: $settings,
                                 viewModel: viewModel)
                                 .environmentObject(keymapSourceVM)
