@@ -103,7 +103,7 @@ struct KeymappingView: View {
 
     @Environment(\.dismiss) var dismiss
 
-    @State private var hasKeymapping: Bool?
+    @State private var hasKeymapping = false
     @State private var fetchedKeymapsFolder: KeymapFolder?
     @State private var fetchedKeymaps = [KeymapInfo]()
     @State private var keymappingPath: URL?
@@ -176,7 +176,7 @@ struct KeymappingView: View {
                         .frame(width: 160)
                     } else {
                         Spacer()
-                        Button(!(hasKeymapping ?? true) ?
+                        Button(!hasKeymapping ?
                                 "settings.button.km.unavailable" :
                                 "settings.button.km.loading") { }
                             .frame(width: 160)
@@ -243,11 +243,6 @@ struct KeymappingView: View {
                         fetchedKeymaps.append(keymap)
                     }
                 }
-
-                if hasKeymapping! {
-                    continue
-                }
-                hasKeymapping = false
             } catch {
                 print(error)
             }
