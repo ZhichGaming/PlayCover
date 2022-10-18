@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct IPALibraryView: View {
-    @EnvironmentObject var ipaSourceVM: IPASourceVM
+    @EnvironmentObject var ipaSourceVM = IPASourceVM.shared
 
     @Binding var selectedBackgroundColor: Color
     @Binding var selectedTextColor: Color

@@ -12,7 +12,6 @@ struct AppSettingsView: View {
     @Environment(\.dismiss) var dismiss
 
     @ObservedObject var viewModel: AppSettingsVM
-    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
 
     @State var resetSettingsCompletedAlert = false
     @State var resetKmCompletedAlert = false
@@ -40,7 +39,7 @@ struct AppSettingsView: View {
                     showPopover: $keymappingPopoverShowing,
                     settings: $viewModel.settings,
                     viewModel: viewModel)
-                    .environmentObject(keymapSourceVM)
+                .environmentObject(KeymapSourceVM.shared)
                     .tabItem {
                         Text("settings.tab.km")
                     }
@@ -91,9 +90,6 @@ struct AppSettingsView: View {
                 toastType: .notice,
                 toastDetails: NSLocalizedString("settings.resetKmCompleted", comment: ""))
         }
-        .onChange(of: keymapSourceVM.keymaps) { _ in
-            dismiss()
-        }
         .padding()
     }
 }
@@ -101,8 +97,6 @@ struct AppSettingsView: View {
 struct KeymappingView: View {
     @Binding var showPopover: Bool
     @Binding var settings: AppSettings
-    @State var keymaps: [KeymapData] = []
-    @State var keymapSelection = KeymapData()
 
     @ObservedObject var viewModel: AppSettingsVM
     @EnvironmentObject var keymapSourceVM: KeymapSourceVM
@@ -118,17 +112,16 @@ struct KeymappingView: View {
                         .help("settings.toggle.mm.help")
                         .disabled(!settings.settings.keymapping)
 
-                    if keymaps.count > 0 {
+                    if keymapSourceVM.keymaps.contains(where: { $0.bundleID == viewModel.app.info.bundleIdentifier }) {
                         Spacer()
                         Button("settings.button.km.download") {
                             showPopover = true
                         }
                         .popover(isPresented: $showPopover, arrowEdge: .bottom) {
                             KeymapPopoverView(
-                                keymapSelection: $keymapSelection,
-                                keymaps: $keymaps,
                                 settings: $settings,
                                 viewModel: viewModel)
+                            .environmentObject(keymapSourceVM)
                         }
                         .frame(width: 160)
                     }
@@ -146,15 +139,6 @@ struct KeymappingView: View {
             }
             .padding()
         }
-        .onAppear {
-            keymaps = keymapSourceVM.keymaps.filter({
-                $0.bundleID == viewModel.app.info.bundleIdentifier})
-            keymapSelection = keymaps[0]
-        }
-        .onDisappear {
-            keymaps = []
-            keymapSelection = KeymapData()
-        }
     }
 }
 
@@ -162,11 +146,12 @@ struct KeymapPopoverView: View {
     @Environment(\.dismiss) var dismiss
 
     @State private var showImportSuccess = false
+    @State private var keymapSelection: KeymapData = KeymapData()
+    @State private var keymaps: [KeymapData] = []
 
-    @Binding var keymapSelection: KeymapData
-    @Binding var keymaps: [KeymapData]
     @Binding var settings: AppSettings
     @ObservedObject var viewModel: AppSettingsVM
+    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
 
     var body: some View {
         VStack(alignment: .center) {
@@ -211,9 +196,20 @@ struct KeymapPopoverView: View {
         .padding()
         .frame(width: 250, height: 165)
         .onChange(of: showImportSuccess) { _ in
+            dismiss()
             ToastVM.shared.showToast(
                 toastType: .notice,
                 toastDetails: NSLocalizedString("alert.kmImported", comment: ""))
+        }
+        .onChange(of: keymapSourceVM.keymaps) { _ in
+            keymaps = keymapSourceVM.keymaps.filter({
+                $0.bundleID == viewModel.app.info.bundleIdentifier})
+            keymapSelection = keymaps[0]
+        }
+        .onAppear {
+            keymaps = keymapSourceVM.keymaps.filter({
+                $0.bundleID == viewModel.app.info.bundleIdentifier})
+            keymapSelection = keymaps[0]
         }
     }
 

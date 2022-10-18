@@ -15,8 +15,6 @@ struct MainView: View {
     @Environment(\.controlActiveState) var controlActiveState
 
     @EnvironmentObject var apps: AppsVM
-    @EnvironmentObject var ipaSourceVM: IPASourceVM
-    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
     @EnvironmentObject var integrity: AppIntegrity
 
     @Binding public var xcodeCliInstalled: Bool
@@ -36,14 +34,12 @@ struct MainView: View {
                 GeometryReader { sidebarGeom in
                     List {
                         NavigationLink(destination: AppLibraryView(selectedBackgroundColor: $selectedBackgroundColor,
-                                                                   selectedTextColor: $selectedTextColor)
-                            .environmentObject(keymapSourceVM),
+                                                                   selectedTextColor: $selectedTextColor),
                                        tag: 1, selection: self.$selectedView) {
                             Label("sidebar.appLibrary", systemImage: "square.grid.2x2")
                         }
                         NavigationLink(destination: IPALibraryView(selectedBackgroundColor: $selectedBackgroundColor,
-                                                                   selectedTextColor: $selectedTextColor)
-                            .environmentObject(ipaSourceVM),
+                                                                   selectedTextColor: $selectedTextColor),
                                        tag: 2, selection: self.$selectedView) {
                             Label("sidebar.ipaLibrary", systemImage: "arrow.down.circle")
                         }
@@ -312,11 +308,7 @@ struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView(xcodeCliInstalled: $xcodeCliInstalled,
                  isSigningSetupShown: $isSigningSetupShown)
-            .environmentObject(InstallVM.shared)
             .environmentObject(AppsVM.shared)
-            .environmentObject(IPASourceVM(PlayTools.playCoverContainer
-                .appendingPathComponent("Sources")
-                .appendingPathExtension("plist")))
             .environmentObject(AppIntegrity())
     }
 }

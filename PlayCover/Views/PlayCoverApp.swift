@@ -35,8 +35,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 struct PlayCoverApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject var updaterViewModel = UpdaterViewModel()
-    var ipaSourceVM = IPASourceVM.shared
-    var keymapSourceVM = KeymapSourceVM.shared
 
     @State var xcodeCliInstalled = shell.isXcodeCliToolsInstalled
     @State var isSigningSetupShown = false
@@ -45,10 +43,7 @@ struct PlayCoverApp: App {
         WindowGroup {
             MainView(xcodeCliInstalled: $xcodeCliInstalled,
                      isSigningSetupShown: $isSigningSetupShown)
-                .environmentObject(InstallVM.shared)
                 .environmentObject(AppsVM.shared)
-                .environmentObject(ipaSourceVM)
-                .environmentObject(keymapSourceVM)
                 .environmentObject(AppIntegrity())
                 .onAppear {
                     NSWindow.allowsAutomaticWindowTabbing = false
@@ -66,8 +61,8 @@ struct PlayCoverApp: App {
 
         Settings {
             PlayCoverSettingsView(updaterViewModel: updaterViewModel)
-                .environmentObject(ipaSourceVM)
-                .environmentObject(keymapSourceVM)
+                .environmentObject(IPASourceVM.shared)
+                .environmentObject(KeymapSourceVM.shared)
         }
     }
 }
