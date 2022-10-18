@@ -171,39 +171,39 @@ class StoreVM: ObservableObject {
         fetchApps()
     }
 
-    func deleteSource(_ selected: inout Set<UUID>) {
-        self.sources.removeAll(where: { selected.contains($0.id) })
+    func deleteSource(_ sources: inout [SourceData], _ selected: inout Set<UUID>) {
+        sources.removeAll(where: { selected.contains($0.id) })
         selected.removeAll()
         resolveSources()
     }
 
-    func moveSourceUp(_ selected: inout Set<UUID>) {
-        let selectedData = self.sources.filter({ selected.contains($0.id) })
-        var index = self.sources.firstIndex(of: selectedData.first!)! - 1
-        self.sources.removeAll(where: { selected.contains($0.id) })
+    func moveSourceUp(_ sources: inout [SourceData], _ selected: inout Set<UUID>) {
+        let selectedData = sources.filter({ selected.contains($0.id) })
+        var index = sources.firstIndex(of: selectedData.first!)! - 1
+        sources.removeAll(where: { selected.contains($0.id) })
         if index < 0 {
             index = 0
         }
-        self.sources.insert(contentsOf: selectedData, at: index)
+        sources.insert(contentsOf: selectedData, at: index)
     }
 
-    func moveSourceDown(_ selected: inout Set<UUID>) {
-        let selectedData = self.sources.filter({ selected.contains($0.id) })
-        var index = self.sources.firstIndex(of: selectedData.first!)! + 1
-        self.sources.removeAll(where: { selected.contains($0.id) })
-        if index > self.sources.endIndex {
-            index = self.sources.endIndex
+    func moveSourceDown(_ sources: inout [SourceData], _ selected: inout Set<UUID>) {
+        let selectedData = sources.filter({ selected.contains($0.id) })
+        var index = sources.firstIndex(of: selectedData.first!)! + 1
+        sources.removeAll(where: { selected.contains($0.id) })
+        if index > sources.endIndex {
+            index = sources.endIndex
         }
-        self.sources.insert(contentsOf: selectedData, at: index)
+        sources.insert(contentsOf: selectedData, at: index)
     }
 
-    func appendSourceData(_ data: SourceData) {
+    func appendSourceData(_ sources: inout [SourceData], _ data: SourceData) {
         if sources.contains(where: { $0.source == data.source }) {
             Log.shared.error("This URL already exists!")
             return
         }
 
-        self.sources.append(data)
+        sources.append(data)
         self.resolveSources()
     }
 
