@@ -66,6 +66,9 @@ struct PlayCoverApp: App {
             PlayCoverMenuView(isSigningSetupShown: $isSigningSetupShown)
             PlayCoverHelpMenuView(updaterViewModel: updaterViewModel)
             PlayCoverViewMenuView()
+                // TODO: Add state object
+                /*.environmentObject(ipaSourceVM)
+                .environmentObject(keymapSourceVM)*/
         }
 
         Settings {

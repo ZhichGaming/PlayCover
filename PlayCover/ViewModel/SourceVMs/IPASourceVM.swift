@@ -38,6 +38,7 @@ class IPASourceVM: SourceVM {
     override func resolveSources() {
         if !NetworkVM.isConnectedToNetwork() { return }
 
+        apps.removeAll()
         for index in 0..<sources.count {
             sources[index].status = .checking
             DispatchQueue.global(qos: .userInteractive).async {
@@ -76,8 +77,6 @@ class IPASourceVM: SourceVM {
                 }
             }
         }
-
-        apps.removeAll()
         fetchApps()
     }
 }

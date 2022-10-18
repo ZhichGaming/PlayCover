@@ -13,6 +13,7 @@ class KeymapSourceVM: SourceVM {
     override func resolveSources() {
         if !NetworkVM.isConnectedToNetwork() { return }
 
+        keymaps.removeAll()
         for index in 0..<sources.count {
             sources[index].status = .checking
             DispatchQueue.global(qos: .userInteractive).async {

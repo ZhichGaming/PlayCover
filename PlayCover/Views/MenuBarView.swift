@@ -54,6 +54,9 @@ struct PlayCoverHelpMenuView: Commands {
 }
 
 struct PlayCoverViewMenuView: Commands {
+    /*@EnvironmentObject var ipaSourceVM: IPASourceVM
+    @EnvironmentObject var keymapSourceVM: KeymapSourceVM*/
+
     var body: some Commands {
         CommandGroup(replacing: .importExport) {
             Button("menubar.exportToSideloady") {
@@ -92,7 +95,8 @@ struct PlayCoverViewMenuView: Commands {
         }
         CommandGroup(before: .sidebar) {
             Button("preferences.button.resolveSources") {
-                StoreVM.shared.resolveSources()
+                /*ipaSourceVM.resolveSources()
+                keymapSourceVM.resolveSources()*/
             }
             .keyboardShortcut("R", modifiers: [.command])
             Divider()
