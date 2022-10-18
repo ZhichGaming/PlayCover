@@ -36,6 +36,8 @@ class StoreVM: ObservableObject {
             encode(sources, sourcesUrl)
         }
     }
+
+    @Published var keymaps: [KeymapData] = []
     @Published var keymapSources: [SourceData] {
         didSet {
             encode(keymapSources, keymapSourcesUrl)
@@ -88,6 +90,10 @@ class StoreVM: ObservableObject {
         fetchApps()
     }
 
+    func appendKeymapData(_ data: [KeymapData]) {
+        
+    }
+
     func fetchApps() {
         var result = apps
         if !uif.searchText.isEmpty {
@@ -101,7 +107,6 @@ class StoreVM: ObservableObject {
     func resolveSources() {
         if !NetworkVM.isConnectedToNetwork() { return }
 
-        apps.removeAll()
         for index in 0..<sources.endIndex {
             sources[index].status = .checking
             DispatchQueue.global(qos: .userInteractive).async {
@@ -139,6 +144,46 @@ class StoreVM: ObservableObject {
                 return
             }
         }
+        
+        for index in 0..<keymapSources.endIndex {
+            keymapSources[index].status = .checking
+            DispatchQueue.global(qos: .userInteractive).async {
+                if let url = URL(string: self.keymapSources[index].source) {
+                    if StoreVM.checkAvaliability(url: url) {
+                        do {
+                            let contents = try String(contentsOf: url)
+                            let jsonData = contents.data(using: .utf8)!
+                            do {
+                                let data: [StoreAppData] = try JSONDecoder().decode([StoreAppData].self, from: jsonData)
+                                if data.count > 0 {
+                                    DispatchQueue.main.async {
+                                        self.keymapSources[index].status = .valid
+                                        self.appendAppData(data)
+                                    }
+                                    return
+                                }
+                            } catch {
+                                DispatchQueue.main.async {
+                                    self.keymapSources[index].status = .badjson
+                                }
+                                return
+                            }
+                        } catch {
+                            DispatchQueue.main.async {
+                                self.keymapSources[index].status = .badurl
+                            }
+                            return
+                        }
+                    }
+                }
+                DispatchQueue.main.async {
+                    self.keymapSources[index].status = .badurl
+                }
+                return
+            }
+        }
+        
+        apps.removeAll()
         fetchApps()
     }
 
@@ -207,4 +252,12 @@ struct StoreAppData: Codable, Equatable {
     let version: String
     let itunesLookup: String
     let link: String
+}
+
+struct KeymapData: Codable, Equatable {
+    var bundleID: String
+    let name: String
+    let htmlUrl: String
+    let url: String
+    let repoName: String
 }

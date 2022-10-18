@@ -145,13 +145,10 @@ struct AddKeymappingSourceView: View {
 
     func validateSource(_ source: String) async {
         struct KeymapFolder: Codable {
-            var name: String
             var url: String
-            var htmlUrl: String
         }
 
         struct KeymapInfo: Codable, Hashable {
-            var name: String
             var downloadUrl: String
         }
 
@@ -181,7 +178,7 @@ struct AddKeymappingSourceView: View {
                                     from: URL(string: fetchedKeymapsFolder!.url)!)
                                 let decodedResponse = try decoder.decode([KeymapInfo].self, from: data)
                                 fetchedKeymaps = decodedResponse.filter {
-                                    $0.name.contains(".playmap")
+                                    $0.downloadUrl.contains(".playmap")
                                 }
 
                                 if fetchedKeymaps.count > 0 {

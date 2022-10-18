@@ -90,28 +90,11 @@ struct AppSettingsView: View {
 }
 
 struct KeymappingView: View {
-    struct KeymapFolder: Codable {
-        var name: String
-        var url: String
-        var htmlUrl: String
-    }
-
-    struct KeymapInfo: Codable, Hashable {
-        var name: String
-        var downloadUrl: String
-    }
-
     @Environment(\.dismiss) var dismiss
-
-    @State private var hasKeymapping = false
-    @State private var fetchedKeymapsFolder: KeymapFolder?
-    @State private var fetchedKeymaps = [KeymapInfo]()
-    @State private var keymappingPath: URL?
-    @State private var downloadedKeymapping: Data?
 
     @State private var showImportSuccess = false
     @State private var showPopover = false
-    @State private var keymapSelection = ""
+    @State private var keymapSelection: KeymapData
 
     @Binding var settings: AppSettings
     @ObservedObject var viewModel: AppSettingsVM
@@ -139,18 +122,19 @@ struct KeymappingView: View {
                                 Text(settings.info.bundleName)
                                     .font(.headline)
                                 Picker("", selection: $keymapSelection) {
-                                    ForEach(fetchedKeymaps, id: \.self) { keymap in
-                                        Group {
-                                            Text(keymap.name.replacingOccurrences(of: ".playmap", with: "") + " ")
-                                            +
-                                            Text(getRepoName(keymap.downloadUrl))
-                                                .font(.footnote)
+                                    ForEach(storeVM.keymaps, id: \.url) { keymap in
+                                        if keymap.bundleID == viewModel.app.info.bundleIdentifier {
+                                            Group {
+                                                Text(keymap.name)
+                                                +
+                                                Text(keymap.repoName)
+                                            }
+                                            .tag(keymap.url)
                                         }
-                                        .tag(keymap.downloadUrl)
                                     }
                                 }
 
-                                Link("playapp.download.info", destination: URL(string: fetchedKeymapsFolder!.htmlUrl)!)
+                                Link("playapp.download.info", destination: URL(string: keymapSelection.htmlUrl))
                                 Divider()
 
                                 HStack(alignment: .center) {
@@ -174,13 +158,6 @@ struct KeymappingView: View {
                             .frame(width: 250, height: 165)
                         }
                         .frame(width: 160)
-                    } else {
-                        Spacer()
-                        Button(!hasKeymapping ?
-                                "settings.button.km.unavailable" :
-                                "settings.button.km.loading") { }
-                            .frame(width: 160)
-                            .disabled(true)
                     }
                 }
                 HStack {
@@ -196,9 +173,6 @@ struct KeymappingView: View {
             }
             .padding()
         }
-        .task {
-            await isInKeymaps()
-        }
         .onChange(of: showImportSuccess) { _ in
             ToastVM.shared.showToast(
                 toastType: .notice,
@@ -206,61 +180,11 @@ struct KeymappingView: View {
         }
     }
 
-    // Check if the game selected is in keymaps repository
-    func isInKeymaps() async {
-        if !NetworkVM.isConnectedToNetwork() { return }
-        fetchedKeymaps = []
-
-        if storeVM.keymapSources.isEmpty {
-            hasKeymapping = false
-            return
-        }
-
-        for keymappingSource in storeVM.keymapSources {
-            guard let url = URL(string: keymappingSource.source) else {
-                print("Invalid URL")
-                return
-            }
-
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-
-                let decoder = JSONDecoder()
-                decoder.keyDecodingStrategy = .convertFromSnakeCase
-
-                let decodedResponse = try decoder.decode([KeymapFolder].self, from: data)
-
-                for index in 0..<decodedResponse.count
-                where decodedResponse[index].name.contains(settings.info.bundleIdentifier) {
-                    hasKeymapping = true
-                    fetchedKeymapsFolder = decodedResponse[index]
-
-                    // Get keymapping data and store it
-                    let (data, _) = try await URLSession.shared.data(from: URL(string: fetchedKeymapsFolder!.url)!)
-                    let decodedKeymaps = try decoder.decode([KeymapInfo].self, from: data)
-
-                    for keymap in decodedKeymaps where keymap.name.contains(".playmap") {
-                        fetchedKeymaps.append(keymap)
-                    }
-                }
-            } catch {
-                print(error)
-            }
-        }
-    }
-
-    func downloadKeymapping(_ keymapIndex: Int) async {
-        guard let url = URL(string: fetchedKeymaps[keymapIndex].downloadUrl) else {
-            print("Invalid URL")
-            return
-        }
-
-        let task = URLSession.shared.downloadTask(with: url) { localURL, _, _ in
+    func downloadKeymapping(_ keymap: KeymapData) async {
+        let task = URLSession.shared.downloadTask(with: URL(string: keymap.url)!) { localURL, _, _ in
             if let localURL = localURL {
-                keymappingPath = localURL
                 if let data = try? Data(contentsOf: localURL) {
-                    downloadedKeymapping = data
-                    saveKeymapping()
+                    saveKeymapping(data, localURL)
                 }
             }
         }
@@ -268,13 +192,13 @@ struct KeymappingView: View {
         task.resume()
     }
 
-    func saveKeymapping() {
+    func saveKeymapping(_ data: Data, _ localURL: URL) {
         do {
-            let keymap = try PropertyListDecoder().decode(Keymap.self, from: downloadedKeymapping!)
+            let keymap = try PropertyListDecoder().decode(Keymap.self, from: data)
             viewModel.app.keymapping.keymap = keymap
             showImportSuccess.toggle()
         } catch {
-            if let keymap = LegacySettings.convertLegacyKeymapFile(keymappingPath!) {
+            if let keymap = LegacySettings.convertLegacyKeymapFile(localURL) {
                 viewModel.app.keymapping.keymap = keymap
                 showImportSuccess.toggle()
                 return
