@@ -94,7 +94,7 @@ struct KeymappingView: View {
 
     @State private var showImportSuccess = false
     @State private var showPopover = false
-    @State private var keymapSelection: KeymapData
+    @State private var keymapSelection: KeymapData?
 
     @Binding var settings: AppSettings
     @ObservedObject var viewModel: AppSettingsVM
@@ -111,7 +111,7 @@ struct KeymappingView: View {
                         .help("settings.toggle.mm.help")
                         .disabled(!settings.settings.keymapping)
 
-                    if hasKeymapping == true {
+                    if storeVM.keymaps.contains(where: { $0.bundleID == viewModel.app.info.bundleIdentifier }) {
                         Spacer()
                         Button("settings.button.km.download") {
                             showPopover = true
@@ -128,13 +128,15 @@ struct KeymappingView: View {
                                                 Text(keymap.name)
                                                 +
                                                 Text(keymap.repoName)
+                                                    .font(.footnote)
                                             }
                                             .tag(keymap.url)
                                         }
                                     }
                                 }
 
-                                Link("playapp.download.info", destination: URL(string: keymapSelection.htmlUrl))
+                                Link("playapp.download.info", destination: URL(string: keymapSelection!.htmlUrl)!)
+                                    .disabled(keymapSelection == nil)
                                 Divider()
 
                                 HStack(alignment: .center) {
@@ -143,15 +145,11 @@ struct KeymappingView: View {
                                     }
                                     Button("button.Install") {
                                         Task {
-                                            await downloadKeymapping(fetchedKeymaps.firstIndex(where: {
-                                                $0.name == keymapSelection
-                                            })!)
+                                            await downloadKeymapping(keymapSelection!)
                                         }
                                         dismiss()
                                     }
-                                    .disabled(fetchedKeymaps.firstIndex(where: {
-                                        $0.name == keymapSelection
-                                    }) == nil)
+                                    .disabled(keymapSelection == nil)
                                 }
                             }
                             .padding()

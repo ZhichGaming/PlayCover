@@ -254,7 +254,7 @@ struct StoreAppData: Codable, Equatable {
     let link: String
 }
 
-struct KeymapData: Codable, Equatable {
+struct KeymapData: Codable, Equatable, Hashable {
     var bundleID: String
     let name: String
     let htmlUrl: String
