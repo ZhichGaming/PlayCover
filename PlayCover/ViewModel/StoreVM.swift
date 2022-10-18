@@ -144,7 +144,7 @@ class StoreVM: ObservableObject {
                 return
             }
         }
-        
+
         for index in 0..<keymapSources.endIndex {
             keymapSources[index].status = .checking
             DispatchQueue.global(qos: .userInteractive).async {
@@ -182,7 +182,7 @@ class StoreVM: ObservableObject {
                 return
             }
         }
-        
+
         apps.removeAll()
         fetchApps()
     }
@@ -252,6 +252,10 @@ struct StoreAppData: Codable, Equatable {
     let version: String
     let itunesLookup: String
     let link: String
+}
+
+struct KeymapSourceData: Codable, Equatable {
+    
 }
 
 struct KeymapData: Codable, Equatable, Hashable {

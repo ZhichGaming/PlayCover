@@ -90,11 +90,7 @@ struct AppSettingsView: View {
 }
 
 struct KeymappingView: View {
-    @Environment(\.dismiss) var dismiss
-
-    @State private var showImportSuccess = false
     @State private var showPopover = false
-    @State private var keymapSelection: KeymapData?
 
     @Binding var settings: AppSettings
     @ObservedObject var viewModel: AppSettingsVM
@@ -117,43 +113,8 @@ struct KeymappingView: View {
                             showPopover = true
                         }
                         .popover(isPresented: $showPopover, arrowEdge: .bottom) {
-                            VStack(alignment: .center) {
-                                Text("playapp.download.game")
-                                Text(settings.info.bundleName)
-                                    .font(.headline)
-                                Picker("", selection: $keymapSelection) {
-                                    ForEach(storeVM.keymaps, id: \.url) { keymap in
-                                        if keymap.bundleID == viewModel.app.info.bundleIdentifier {
-                                            Group {
-                                                Text(keymap.name)
-                                                +
-                                                Text(keymap.repoName)
-                                                    .font(.footnote)
-                                            }
-                                            .tag(keymap.url)
-                                        }
-                                    }
-                                }
-
-                                Link("playapp.download.info", destination: URL(string: keymapSelection!.htmlUrl)!)
-                                    .disabled(keymapSelection == nil)
-                                Divider()
-
-                                HStack(alignment: .center) {
-                                    Button("button.Cancel", role: .cancel) {
-                                        dismiss()
-                                    }
-                                    Button("button.Install") {
-                                        Task {
-                                            await downloadKeymapping(keymapSelection!)
-                                        }
-                                        dismiss()
-                                    }
-                                    .disabled(keymapSelection == nil)
-                                }
-                            }
-                            .padding()
-                            .frame(width: 250, height: 165)
+                            KeymapPopoverView(settings: $settings, viewModel: viewModel)
+                                .environmentObject(storeVM)
                         }
                         .frame(width: 160)
                     }
@@ -171,6 +132,57 @@ struct KeymappingView: View {
             }
             .padding()
         }
+    }
+}
+
+struct KeymapPopoverView: View {
+    @Environment(\.dismiss) var dismiss
+
+    @State private var showImportSuccess = false
+    @State private var keymapSelection: KeymapData?
+
+    @Binding var settings: AppSettings
+    @ObservedObject var viewModel: AppSettingsVM
+    @EnvironmentObject var storeVM: StoreVM
+
+    var body: some View {
+        VStack(alignment: .center) {
+            Text("playapp.download.game")
+            Text(settings.info.bundleName)
+                .font(.headline)
+            Picker("", selection: $keymapSelection) {
+                ForEach(storeVM.keymaps, id: \.hashValue) { keymap in
+                    if keymap.bundleID == viewModel.app.info.bundleIdentifier {
+                        Group {
+                            Text(keymap.name)
+                            +
+                            Text(keymap.repoName)
+                                .font(.footnote)
+                        }
+                        .tag(keymap)
+                    }
+                }
+            }
+
+            Link("playapp.download.info", destination: URL(string: keymapSelection!.htmlUrl)!)
+                .disabled(keymapSelection == nil)
+            Divider()
+
+            HStack(alignment: .center) {
+                Button("button.Cancel", role: .cancel) {
+                    dismiss()
+                }
+                Button("button.Install") {
+                    Task {
+                        await downloadKeymapping(keymapSelection!)
+                    }
+                    dismiss()
+                }
+                .disabled(keymapSelection == nil)
+            }
+        }
+        .padding()
+        .frame(width: 250, height: 165)
         .onChange(of: showImportSuccess) { _ in
             ToastVM.shared.showToast(
                 toastType: .notice,
