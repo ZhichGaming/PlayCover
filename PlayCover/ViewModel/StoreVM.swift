@@ -193,13 +193,26 @@ class StoreVM: ObservableObject {
                     let contents = try String(contentsOf: url)
                     let jsonData = contents.data(using: .utf8)!
                     do {
-                        let data: [KeymapFolderSourceData] = try JSONDecoder().decode([KeymapFolderSourceData].self, from: jsonData)
-                        if data.count > 0 {
-                            DispatchQueue.main.async {
-                                self.keymapSources[index].status = .valid
-                                self.appendKeymapData(data)
+                        let decoder = JSONDecoder()
+                        decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        let data = try decoder.decode([KeymapFolderSourceData].self, from: jsonData)
+                        
+                        for index in 0..<data.count {
+                            let keymapContents = try String(contentsOf: URL(string: data[index].url)!)
+                            let keymapJsonData = keymapContents.data(using: .utf8)!
+                            let keymapData = try decoder.decode([KeymapSourceData].self, from: keymapJsonData)
+
+                            let fetchedKeymaps = keymapData.filter {
+                                $0.downloadUrl.contains(".playmap")
                             }
-                            return
+
+                            if fetchedKeymaps.count > 0 {
+                                DispatchQueue.main.async {
+                                    self.keymapSources[index].status = .valid
+                                    self.appendKeymapData(data)
+                                }
+                                return
+                            }
                         }
                     } catch {
                         DispatchQueue.main.async {

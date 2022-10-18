@@ -162,7 +162,7 @@ struct AddKeymappingSourceView: View {
 
                     for index in 0..<data.count {
                         let keymapContents = try String(contentsOf: URL(string: data[index].url)!)
-                        let keymapJsonData = contents.data(using: .utf8)!
+                        let keymapJsonData = keymapContents.data(using: .utf8)!
                         let keymapData = try decoder.decode([KeymapSourceData].self, from: keymapJsonData)
 
                         let fetchedKeymaps = keymapData.filter {
