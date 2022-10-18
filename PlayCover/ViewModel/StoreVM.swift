@@ -95,13 +95,15 @@ class StoreVM: ObservableObject {
             do {
                 let contents = try String(contentsOf: URL(string: element.url)!)
                 let jsonData = contents.data(using: .utf8)!
-                let data: [KeymapSourceData] = try JSONDecoder().decode([KeymapSourceData].self, from: jsonData)
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                let data: [KeymapSourceData] = try decoder.decode([KeymapSourceData].self, from: jsonData)
 
                 for source in data {
                     var keymapData = KeymapData()
                     keymapData.bundleID = element.name
                     keymapData.htmlUrl = element.htmlUrl
-                    
+
                     keymapData.name = source.name.replacingOccurrences(of: ".playmap", with: "")
                     keymapData.url = source.downloadUrl
                     keymapData.repoName = getRepoName(source.downloadUrl)
@@ -141,76 +143,76 @@ class StoreVM: ObservableObject {
         for index in 0..<sources.endIndex {
             sources[index].status = .checking
             DispatchQueue.global(qos: .userInteractive).async {
-                if let url = URL(string: self.sources[index].source) {
-                    if StoreVM.checkAvaliability(url: url) {
-                        do {
-                            let contents = try String(contentsOf: url)
-                            let jsonData = contents.data(using: .utf8)!
-                            do {
-                                let data: [StoreAppData] = try JSONDecoder().decode([StoreAppData].self, from: jsonData)
-                                if data.count > 0 {
-                                    DispatchQueue.main.async {
-                                        self.sources[index].status = .valid
-                                        self.appendAppData(data)
-                                    }
-                                    return
-                                }
-                            } catch {
-                                DispatchQueue.main.async {
-                                    self.sources[index].status = .badjson
-                                }
-                                return
-                            }
-                        } catch {
+                guard let url = URL(string: self.sources[index].source) else {
+                    DispatchQueue.main.async {
+                        self.sources[index].status = .badurl
+                    }
+                    return
+                }
+
+                do {
+                    let contents = try String(contentsOf: url)
+                    let jsonData = contents.data(using: .utf8)!
+                    do {
+                        let decoder = JSONDecoder()
+                        decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        let data: [StoreAppData] = try decoder.decode([StoreAppData].self, from: jsonData)
+                        if data.count > 0 {
                             DispatchQueue.main.async {
-                                self.sources[index].status = .badurl
+                                self.sources[index].status = .valid
+                                self.appendAppData(data)
                             }
                             return
                         }
+                    } catch {
+                        DispatchQueue.main.async {
+                            self.sources[index].status = .badjson
+                        }
+                            return
                     }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.sources[index].status = .badurl
+                    }
+                    return
                 }
-                DispatchQueue.main.async {
-                    self.sources[index].status = .badurl
-                }
-                return
             }
         }
 
         for index in 0..<keymapSources.endIndex {
             keymapSources[index].status = .checking
             DispatchQueue.global(qos: .userInteractive).async {
-                if let url = URL(string: self.keymapSources[index].source) {
-                    if StoreVM.checkAvaliability(url: url) {
-                        do {
-                            let contents = try String(contentsOf: url)
-                            let jsonData = contents.data(using: .utf8)!
-                            do {
-                                let data: [KeymapFolderSourceData] = try JSONDecoder().decode([KeymapFolderSourceData].self, from: jsonData)
-                                if data.count > 0 {
-                                    DispatchQueue.main.async {
-                                        self.keymapSources[index].status = .valid
-                                        self.appendKeymapData(data)
-                                    }
-                                    return
-                                }
-                            } catch {
-                                DispatchQueue.main.async {
-                                    self.keymapSources[index].status = .badjson
-                                }
-                                return
-                            }
-                        } catch {
+                guard let url = URL(string: self.keymapSources[index].source) else {
+                    DispatchQueue.main.async {
+                        self.keymapSources[index].status = .badurl
+                    }
+                    return
+                }
+
+                do {
+                    let contents = try String(contentsOf: url)
+                    let jsonData = contents.data(using: .utf8)!
+                    do {
+                        let data: [KeymapFolderSourceData] = try JSONDecoder().decode([KeymapFolderSourceData].self, from: jsonData)
+                        if data.count > 0 {
                             DispatchQueue.main.async {
-                                self.keymapSources[index].status = .badurl
+                                self.keymapSources[index].status = .valid
+                                self.appendKeymapData(data)
                             }
                             return
                         }
+                    } catch {
+                        DispatchQueue.main.async {
+                            self.keymapSources[index].status = .badjson
+                        }
+                        return
                     }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.keymapSources[index].status = .badurl
+                    }
+                    return
                 }
-                DispatchQueue.main.async {
-                    self.keymapSources[index].status = .badurl
-                }
-                return
             }
         }
 
@@ -252,28 +254,6 @@ class StoreVM: ObservableObject {
 
         sources.append(data)
         self.resolveSources()
-    }
-
-    static func checkAvaliability(url: URL) -> Bool {
-        var avaliable = true
-        var request = URLRequest(url: url)
-        request.httpMethod = "HEAD"
-        URLSession(configuration: .default)
-            .dataTask(with: request) { _, response, error in
-                guard error == nil else {
-                    print("Error:", error ?? "")
-                    avaliable = false
-                    return
-                }
-
-                guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-                    print("down")
-                    avaliable = false
-                    return
-                }
-            }
-            .resume()
-        return avaliable
     }
 }
 

@@ -132,73 +132,56 @@ struct AddKeymappingSourceView: View {
         .padding()
         .frame(width: 400, height: 100)
         .onChange(of: newSource) { source in
-            Task {
-                await validateSource(source)
-            }
+            validateSource(source)
         }
         .onAppear {
-            Task {
-                await validateSource(newSource)
-            }
+            validateSource(newSource)
         }
     }
 
-    func validateSource(_ source: String) async {
-        struct KeymapFolder: Codable {
-            var url: String
-        }
-
-        struct KeymapInfo: Codable, Hashable {
-            var downloadUrl: String
-        }
-
+    func validateSource(_ source: String) {
         sourceValidationState = .checking
 
-        do {
-            var fetchedKeymapsFolder: KeymapFolder?
-            var fetchedKeymaps = [KeymapInfo]()
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard var url = URL(string: source) else {
+                sourceValidationState = .badurl
+                return
+            }
 
-            if let url = URL(string: source) {
-                newSourceURL = url
+            do {
+                if url.scheme == nil {
+                    url = URL(string: "https://" + url.absoluteString)!
+                }
 
-                if StoreVM.checkAvaliability(url: newSourceURL!) {
-                    do {
-                        let (data, _) = try await URLSession.shared.data(from: url)
+                let contents = try String(contentsOf: url)
+                let jsonData = contents.data(using: .utf8)!
+                do {
+                    let decoder = JSONDecoder()
+                    decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    let data = try decoder.decode([KeymapFolderSourceData].self, from: jsonData)
 
-                        do {
-                            let decoder = JSONDecoder()
-                            decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    for index in 0..<data.count {
+                        let keymapContents = try String(contentsOf: URL(string: data[index].url)!)
+                        let keymapJsonData = contents.data(using: .utf8)!
+                        let keymapData = try decoder.decode([KeymapSourceData].self, from: keymapJsonData)
 
-                            let decodedResponse = try decoder.decode([KeymapFolder].self, from: data)
+                        let fetchedKeymaps = keymapData.filter {
+                            $0.downloadUrl.contains(".playmap")
+                        }
 
-                            for index in 0..<decodedResponse.count {
-                                fetchedKeymapsFolder = decodedResponse[index]
-
-                                let (data, _) = try await URLSession.shared.data(
-                                    from: URL(string: fetchedKeymapsFolder!.url)!)
-                                let decodedResponse = try decoder.decode([KeymapInfo].self, from: data)
-                                fetchedKeymaps = decodedResponse.filter {
-                                    $0.downloadUrl.contains(".playmap")
-                                }
-
-                                if fetchedKeymaps.count > 0 {
-                                    sourceValidationState = .valid
-                                    return
-                                }
-                            }
-                        } catch {
-                            sourceValidationState = .badjson
-                            print(error)
+                        if fetchedKeymaps.count > 0 {
+                            sourceValidationState = .valid
                             return
                         }
-                    } catch {
-                        sourceValidationState = .badurl
-                        return
                     }
+                } catch {
+                    sourceValidationState = .badjson
+                    return
                 }
+            } catch {
+                sourceValidationState = .badurl
+                return
             }
-            sourceValidationState = .badurl
-            return
         }
     }
 }

@@ -225,33 +225,31 @@ struct AddSourceView: View {
     func validateSource(_ source: String) {
         sourceValidationState = .checking
         DispatchQueue.global(qos: .userInteractive).async {
-            if let url = URL(string: source) {
-                newSourceURL = url
-                if StoreVM.checkAvaliability(url: newSourceURL!) {
-                    do {
-                        if newSourceURL!.scheme == nil {
-                            newSourceURL = URL(string: "https://" + newSourceURL!.absoluteString)!
-                        }
-                        let contents = try String(contentsOf: newSourceURL!)
-                        let jsonData = contents.data(using: .utf8)!
-                        do {
-                            let data: [StoreAppData] = try JSONDecoder().decode([StoreAppData].self, from: jsonData)
-                            if data.count > 0 {
-                                sourceValidationState = .valid
-                                return
-                            }
-                        } catch {
-                            sourceValidationState = .badjson
-                            return
-                        }
-                    } catch {
-                        sourceValidationState = .badurl
+            guard var url = URL(string: source) else {
+                sourceValidationState = .badurl
+                return
+            }
+
+            do {
+                if url.scheme == nil {
+                    url = URL(string: "https://" + url.absoluteString)!
+                }
+                let contents = try String(contentsOf: url)
+                let jsonData = contents.data(using: .utf8)!
+                do {
+                    let data: [StoreAppData] = try JSONDecoder().decode([StoreAppData].self, from: jsonData)
+                    if data.count > 0 {
+                        sourceValidationState = .valid
                         return
                     }
+                } catch {
+                    sourceValidationState = .badjson
+                    return
                 }
+            } catch {
+                sourceValidationState = .badurl
+                return
             }
-            sourceValidationState = .badurl
-            return
         }
     }
 }
