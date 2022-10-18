@@ -39,7 +39,8 @@ struct MainView: View {
                             Label("sidebar.appLibrary", systemImage: "square.grid.2x2")
                         }
                         NavigationLink(destination: IPALibraryView(selectedBackgroundColor: $selectedBackgroundColor,
-                                                                   selectedTextColor: $selectedTextColor),
+                                                                   selectedTextColor: $selectedTextColor)
+                            .environmentObject(IPASourceVM.shared),
                                        tag: 2, selection: self.$selectedView) {
                             Label("sidebar.ipaLibrary", systemImage: "arrow.down.circle")
                         }
