@@ -227,7 +227,7 @@ struct AddSourceView: View {
     func validateSource(_ source: String) {
         sourceValidationState = .checking
         DispatchQueue.global(qos: .userInteractive).async {
-            guard var url = URL(string: source) else {
+            guard let url = URL(string: source) else {
                 sourceValidationState = .badurl
                 return
             }

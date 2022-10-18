@@ -151,7 +151,7 @@ struct AddKeymappingSourceView: View {
         sourceValidationState = .checking
 
         DispatchQueue.global(qos: .userInteractive).async {
-            guard var url = URL(string: source) else {
+            guard let url = URL(string: source) else {
                 sourceValidationState = .badurl
                 return
             }

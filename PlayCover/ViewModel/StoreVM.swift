@@ -92,25 +92,29 @@ class StoreVM: ObservableObject {
 
     func appendKeymapData(_ data: [KeymapFolderSourceData]) {
         for element in data {
-            do {
-                let contents = try String(contentsOf: URL(string: element.url)!)
-                let jsonData = contents.data(using: .utf8)!
-                let decoder = JSONDecoder()
-                decoder.keyDecodingStrategy = .convertFromSnakeCase
-                let data: [KeymapSourceData] = try decoder.decode([KeymapSourceData].self, from: jsonData)
+            DispatchQueue.global(qos: .userInteractive).async {
+                do {
+                    let contents = try String(contentsOf: URL(string: element.url)!)
+                    let jsonData = contents.data(using: .utf8)!
+                    let decoder = JSONDecoder()
+                    decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    let data: [KeymapSourceData] = try decoder.decode([KeymapSourceData].self, from: jsonData)
 
-                for source in data {
-                    var keymapData = KeymapData()
-                    keymapData.bundleID = element.name
-                    keymapData.htmlUrl = element.htmlUrl
+                    for source in data {
+                        var keymapData = KeymapData()
+                        keymapData.bundleID = element.name
+                        keymapData.htmlUrl = element.htmlUrl
 
-                    keymapData.name = source.name.replacingOccurrences(of: ".playmap", with: "")
-                    keymapData.url = source.downloadUrl
-                    keymapData.repoName = getRepoName(source.downloadUrl)
-                    keymaps.append(keymapData)
+                        keymapData.name = source.name.replacingOccurrences(of: ".playmap", with: "")
+                        keymapData.url = source.downloadUrl
+                        keymapData.repoName = self.getRepoName(source.downloadUrl)
+                        DispatchQueue.main.async {
+                            self.keymaps.append(keymapData)
+                        }
+                    }
+                } catch {
+                    Log.shared.error(error)
                 }
-            } catch {
-                Log.shared.error(error)
             }
         }
     }
@@ -196,7 +200,7 @@ class StoreVM: ObservableObject {
                         let decoder = JSONDecoder()
                         decoder.keyDecodingStrategy = .convertFromSnakeCase
                         let data = try decoder.decode([KeymapFolderSourceData].self, from: jsonData)
-                        
+
                         for index in 0..<data.count {
                             let keymapContents = try String(contentsOf: URL(string: data[index].url)!)
                             let keymapJsonData = keymapContents.data(using: .utf8)!
@@ -234,6 +238,7 @@ class StoreVM: ObservableObject {
     }
 
     func deleteSource(_ sources: inout [SourceData], _ selected: inout Set<UUID>) {
+        // TODO: Fix crash
         sources.removeAll(where: { selected.contains($0.id) })
         selected.removeAll()
         resolveSources()

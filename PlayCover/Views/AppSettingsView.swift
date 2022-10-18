@@ -140,6 +140,7 @@ struct KeymapPopoverView: View {
 
     @State private var showImportSuccess = false
     @State private var keymapSelection: KeymapData?
+    @State private var keymapSelectionHTMLURL = URL(string: "https://www.google.com")!
 
     @Binding var settings: AppSettings
     @ObservedObject var viewModel: AppSettingsVM
@@ -151,20 +152,20 @@ struct KeymapPopoverView: View {
             Text(settings.info.bundleName)
                 .font(.headline)
             Picker("", selection: $keymapSelection) {
-                ForEach(storeVM.keymaps, id: \.hashValue) { keymap in
+                ForEach(storeVM.keymaps, id: \.url) { keymap in
                     if keymap.bundleID == viewModel.app.info.bundleIdentifier {
                         Group {
-                            Text(keymap.name)
+                            Text("\(keymap.name) ")
                             +
                             Text(keymap.repoName)
                                 .font(.footnote)
                         }
-                        .tag(keymap)
+                        .tag(keymap.url)
                     }
                 }
             }
 
-            Link("playapp.download.info", destination: URL(string: keymapSelection!.htmlUrl)!)
+            Link("playapp.download.info", destination: keymapSelectionHTMLURL)
                 .disabled(keymapSelection == nil)
             Divider()
 
@@ -187,6 +188,13 @@ struct KeymapPopoverView: View {
             ToastVM.shared.showToast(
                 toastType: .notice,
                 toastDetails: NSLocalizedString("alert.kmImported", comment: ""))
+        }
+        .onChange(of: keymapSelection) { _ in
+            if keymapSelection != nil {
+                keymapSelectionHTMLURL = URL(string: keymapSelection!.htmlUrl)!
+            } else {
+                keymapSelectionHTMLURL = URL(string: "https://www.google.com")!
+            }
         }
     }
 
