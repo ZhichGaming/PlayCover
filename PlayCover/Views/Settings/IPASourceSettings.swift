@@ -231,12 +231,14 @@ struct AddSourceView: View {
                 sourceValidationState = .badurl
                 return
             }
+            newSourceURL = url
 
             do {
-                if url.scheme == nil {
-                    url = URL(string: "https://" + url.absoluteString)!
+                if newSourceURL!.scheme == nil {
+                    newSourceURL = URL(string: "https://" + url.absoluteString)!
                 }
-                let contents = try String(contentsOf: url)
+
+                let contents = try String(contentsOf: newSourceURL!)
                 let jsonData = contents.data(using: .utf8)!
                 do {
                     let data: [StoreAppData] = try JSONDecoder().decode([StoreAppData].self, from: jsonData)
