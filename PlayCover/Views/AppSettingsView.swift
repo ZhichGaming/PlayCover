@@ -101,6 +101,8 @@ struct AppSettingsView: View {
 struct KeymappingView: View {
     @Binding var showPopover: Bool
     @Binding var settings: AppSettings
+    @State var keymaps: [KeymapData] = []
+    @State var keymapSelection = KeymapData()
 
     @ObservedObject var viewModel: AppSettingsVM
     @EnvironmentObject var keymapSourceVM: KeymapSourceVM
@@ -116,19 +118,17 @@ struct KeymappingView: View {
                         .help("settings.toggle.mm.help")
                         .disabled(!settings.settings.keymapping)
 
-                    if keymapSourceVM.keymaps.contains(where: { $0.bundleID == viewModel.app.info.bundleIdentifier }) {
+                    if keymaps.count > 0 {
                         Spacer()
                         Button("settings.button.km.download") {
                             showPopover = true
                         }
                         .popover(isPresented: $showPopover, arrowEdge: .bottom) {
                             KeymapPopoverView(
-                                keymaps: keymapSourceVM.keymaps.filter({
-                                    $0.bundleID == viewModel.app.info.bundleIdentifier
-                                }),
+                                keymapSelection: $keymapSelection,
+                                keymaps: $keymaps,
                                 settings: $settings,
                                 viewModel: viewModel)
-                                .environmentObject(keymapSourceVM)
                         }
                         .frame(width: 160)
                     }
@@ -146,6 +146,15 @@ struct KeymappingView: View {
             }
             .padding()
         }
+        .onAppear {
+            keymaps = keymapSourceVM.keymaps.filter({
+                $0.bundleID == viewModel.app.info.bundleIdentifier})
+            keymapSelection = keymaps[0]
+        }
+        .onDisappear {
+            keymaps = []
+            keymapSelection = KeymapData()
+        }
     }
 }
 
@@ -153,12 +162,11 @@ struct KeymapPopoverView: View {
     @Environment(\.dismiss) var dismiss
 
     @State private var showImportSuccess = false
-    @State private var keymapSelection = KeymapData()
-    @State var keymaps: [KeymapData]
 
+    @Binding var keymapSelection: KeymapData
+    @Binding var keymaps: [KeymapData]
     @Binding var settings: AppSettings
     @ObservedObject var viewModel: AppSettingsVM
-    @EnvironmentObject var keymapSourceVM: KeymapSourceVM
 
     var body: some View {
         VStack(alignment: .center) {
@@ -206,9 +214,6 @@ struct KeymapPopoverView: View {
             ToastVM.shared.showToast(
                 toastType: .notice,
                 toastDetails: NSLocalizedString("alert.kmImported", comment: ""))
-        }
-        .onAppear {
-            keymapSelection = keymaps[0]
         }
     }
 
