@@ -100,7 +100,7 @@ class StoreVM: ObservableObject {
                     decoder.keyDecodingStrategy = .convertFromSnakeCase
                     let data: [KeymapSourceData] = try decoder.decode([KeymapSourceData].self, from: jsonData)
 
-                    for source in data {
+                    for source in data where source.name.contains(".playmap") {
                         var keymapData = KeymapData()
                         keymapData.bundleID = element.name
                         keymapData.htmlUrl = element.htmlUrl

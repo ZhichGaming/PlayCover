@@ -180,6 +180,8 @@ struct KeymapPopoverView: View {
                     }
                     dismiss()
                 }
+                .tint(.accentColor)
+                .keyboardShortcut(.defaultAction)
             }
         }
         .padding()
