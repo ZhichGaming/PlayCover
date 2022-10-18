@@ -24,7 +24,7 @@
 "preferences.tab.updates" = "Updates";
 "preferences.toggle.automaticUpdates" = "Automatically check for updates";
 "preferences.tab.ipasource" = "IPA Sources";
-"preferences.tab.keymappingSource" = "Keymapping Sources";
+"preferences.tab.keymapSource" = "Keymap Sources";
 "preferences.button.addSource" = "Add Source";
 "preferences.button.deleteSource" = "Delete Source";
 "preferences.button.moveSourceUp" = "Move Source Up";

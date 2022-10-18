@@ -29,9 +29,9 @@ struct PlayCoverSettingsView: View {
                 }
                 .tag(Tabs.ipasource)
                 .environmentObject(storeVM)
-            KeymappingSourceSettings()
+            KeymapSourceSettings()
                 .tabItem {
-                    Label("preferences.tab.keymappingSource", systemImage: "keyboard.macwindow")
+                    Label("preferences.tab.keymapSource", systemImage: "keyboard.macwindow")
                 }
                 .tag(Tabs.keymappingSource)
                 .environmentObject(storeVM)

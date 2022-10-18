@@ -1,5 +1,5 @@
 //
-//  KeymappingSourceSettings.swift
+//  KeymapSourceSettings.swift
 //  PlayCover
 //
 //  Created by Nick on 2022-10-04.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct KeymappingSourceSettings: View {
+struct KeymapSourceSettings: View {
     @State var selected = Set<UUID>()
     @State var selectedNotEmpty = false
     @State var addSourceSheet = false
@@ -17,7 +17,7 @@ struct KeymappingSourceSettings: View {
     var body: some View {
         Form {
             HStack {
-                List(storeVM.keymappingSources, id: \.id, selection: $selected) { source in
+                List(storeVM.keymapSources, id: \.id, selection: $selected) { source in
                     SourceView(source: source)
                 }
                 .listStyle(.bordered(alternatesRowBackgrounds: true))
@@ -31,7 +31,7 @@ struct KeymappingSourceSettings: View {
                             .frame(width: 130)
                     })
                     Button(action: {
-                        storeVM.deleteSource(&storeVM.keymappingSources, &selected)
+                        storeVM.deleteSource(&storeVM.keymapSources, &selected)
                     }, label: {
                         Text("preferences.button.deleteSource")
                             .frame(width: 130)
@@ -40,14 +40,14 @@ struct KeymappingSourceSettings: View {
                     Spacer()
                         .frame(height: 20)
                     Button(action: {
-                        storeVM.moveSourceUp(&storeVM.keymappingSources, &selected)
+                        storeVM.moveSourceUp(&storeVM.keymapSources, &selected)
                     }, label: {
                         Text("preferences.button.moveSourceUp")
                             .frame(width: 130)
                     })
                     .disabled(!selectedNotEmpty)
                     Button(action: {
-                        storeVM.moveSourceDown(&storeVM.keymappingSources, &selected)
+                        storeVM.moveSourceDown(&storeVM.keymapSources, &selected)
                     }, label: {
                         Text("preferences.button.moveSourceDown")
                             .frame(width: 130)
@@ -117,7 +117,7 @@ struct AddKeymappingSourceView: View {
                 Button(action: {
                     if newSourceURL != nil {
                         storeVM.appendSourceData(
-                            &storeVM.keymappingSources,
+                            &storeVM.keymapSources,
                             SourceData(source: newSourceURL!.absoluteString))
                         addSourceSheet.toggle()
                     }
@@ -208,6 +208,6 @@ struct AddKeymappingSourceView: View {
 
 struct KeymappingSourceSettings_Previews: PreviewProvider {
     static var previews: some View {
-        KeymappingSourceSettings()
+        KeymapSourceSettings()
     }
 }

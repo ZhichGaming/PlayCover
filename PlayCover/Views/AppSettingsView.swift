@@ -211,12 +211,12 @@ struct KeymappingView: View {
         if !NetworkVM.isConnectedToNetwork() { return }
         fetchedKeymaps = []
 
-        if storeVM.keymappingSources.isEmpty {
+        if storeVM.keymapSources.isEmpty {
             hasKeymapping = false
             return
         }
 
-        for keymappingSource in storeVM.keymappingSources {
+        for keymappingSource in storeVM.keymapSources {
             guard let url = URL(string: keymappingSource.source) else {
                 print("Invalid URL")
                 return

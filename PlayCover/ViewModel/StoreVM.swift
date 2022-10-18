@@ -15,16 +15,16 @@ class StoreVM: ObservableObject {
         sourcesUrl = PlayTools.playCoverContainer
             .appendingPathComponent("Sources")
             .appendingPathExtension("plist")
-        keymappingSourcesUrl = PlayTools.playCoverContainer
-            .appendingPathComponent("KeymappingSources")
+        keymapSourcesUrl = PlayTools.playCoverContainer
+            .appendingPathComponent("Keymap Sources")
             .appendingPathExtension("plist")
         sources = []
-        keymappingSources = []
+        keymapSources = []
         if !decode(&sources, sourcesUrl) {
             encode(sources, sourcesUrl)
         }
-        if !decode(&keymappingSources, keymappingSourcesUrl) {
-            encode(keymappingSources, keymappingSourcesUrl)
+        if !decode(&keymapSources, keymapSourcesUrl) {
+            encode(keymapSources, keymapSourcesUrl)
         }
         resolveSources()
     }
@@ -36,14 +36,14 @@ class StoreVM: ObservableObject {
             encode(sources, sourcesUrl)
         }
     }
-    @Published var keymappingSources: [SourceData] {
+    @Published var keymapSources: [SourceData] {
         didSet {
-            encode(keymappingSources, keymappingSourcesUrl)
+            encode(keymapSources, keymapSourcesUrl)
         }
     }
 
     let sourcesUrl: URL
-    let keymappingSourcesUrl: URL
+    let keymapSourcesUrl: URL
 
     @discardableResult
     public func decode(_ sources: inout [SourceData], _ sourceUrl: URL) -> Bool {
