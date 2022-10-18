@@ -177,12 +177,6 @@ class StoreVM: ObservableObject {
         resolveSources()
     }
 
-    func deleteKeymappingSource(_ selected: inout Set<UUID>) {
-        self.keymappingSources.removeAll(where: { selected.contains($0.id) })
-        selected.removeAll()
-        resolveSources()
-    }
-
     func moveSourceUp(_ selected: inout Set<UUID>) {
         let selectedData = self.sources.filter({ selected.contains($0.id) })
         var index = self.sources.firstIndex(of: selectedData.first!)! - 1
@@ -191,16 +185,6 @@ class StoreVM: ObservableObject {
             index = 0
         }
         self.sources.insert(contentsOf: selectedData, at: index)
-    }
-
-    func moveKeymappingSourceUp(_ selected: inout Set<UUID>) {
-        let selectedData = self.keymappingSources.filter({ selected.contains($0.id) })
-        var index = self.keymappingSources.firstIndex(of: selectedData.first!)! - 1
-        self.keymappingSources.removeAll(where: { selected.contains($0.id) })
-        if index < 0 {
-            index = 0
-        }
-        self.keymappingSources.insert(contentsOf: selectedData, at: index)
     }
 
     func moveSourceDown(_ selected: inout Set<UUID>) {
@@ -213,16 +197,6 @@ class StoreVM: ObservableObject {
         self.sources.insert(contentsOf: selectedData, at: index)
     }
 
-    func moveKeymappingSourceDown(_ selected: inout Set<UUID>) {
-        let selectedData = self.keymappingSources.filter({ selected.contains($0.id) })
-        var index = self.keymappingSources.firstIndex(of: selectedData.first!)! + 1
-        self.keymappingSources.removeAll(where: { selected.contains($0.id) })
-        if index > self.keymappingSources.endIndex {
-            index = self.keymappingSources.endIndex
-        }
-        self.keymappingSources.insert(contentsOf: selectedData, at: index)
-    }
-
     func appendSourceData(_ data: SourceData) {
         if sources.contains(where: { $0.source == data.source }) {
             Log.shared.error("This URL already exists!")
@@ -230,16 +204,6 @@ class StoreVM: ObservableObject {
         }
 
         self.sources.append(data)
-        self.resolveSources()
-    }
-
-    func appendKeymappingSourceData(_ data: SourceData) {
-        if keymappingSources.contains(where: { $0.source == data.source }) {
-            Log.shared.error("This URL already exists!")
-            return
-        }
-
-        self.keymappingSources.append(data)
         self.resolveSources()
     }
 
