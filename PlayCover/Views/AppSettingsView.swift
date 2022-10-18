@@ -143,7 +143,6 @@ struct KeymapPopoverView: View {
 
     @State private var showImportSuccess = false
     @State private var keymapSelection = KeymapData()
-    @State private var keymapSelectionHTMLURL = URL(string: "https://www.google.com")!
     @State var keymaps: [KeymapData]
 
     @Binding var settings: AppSettings
@@ -167,8 +166,14 @@ struct KeymapPopoverView: View {
                 }
             }
 
-            // Link("playapp.download.info", destination: URL(string: keymapSelection.htmlUrl)!)
-            // Divider()
+            if let url = URL(string: keymapSelection.htmlUrl) {
+                Link("playapp.download.info", destination: url)
+                Divider()
+            } else {
+                Link("playapp.download.info", destination: URL(string: "https://www.google.com")!)
+                    .disabled(true)
+                Divider()
+            }
 
             HStack(alignment: .center) {
                 Button("button.Cancel", role: .cancel) {
@@ -181,6 +186,7 @@ struct KeymapPopoverView: View {
                     dismiss()
                 }
                 .tint(.accentColor)
+                // TODO: Needs some work
                 .keyboardShortcut(.defaultAction)
             }
         }
@@ -190,13 +196,6 @@ struct KeymapPopoverView: View {
             ToastVM.shared.showToast(
                 toastType: .notice,
                 toastDetails: NSLocalizedString("alert.kmImported", comment: ""))
-        }
-        .onChange(of: keymapSelection) { _ in
-            if let url = URL(string: keymapSelection.htmlUrl) {
-                keymapSelectionHTMLURL = url
-            } else {
-                keymapSelectionHTMLURL = URL(string: "https://www.google.com")!
-            }
         }
         .onAppear {
             keymapSelection = keymaps[0]
